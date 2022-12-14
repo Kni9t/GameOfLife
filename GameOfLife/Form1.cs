@@ -19,6 +19,7 @@ namespace GameOfLife
 
         const int SIZE = 5;
         int MapHeight, MapWidth;
+        bool Mode = true, Time = true;
 
         bool[][] Map; // Height на Width
 
@@ -33,17 +34,14 @@ namespace GameOfLife
             {
                 Map[i] = new bool[MapWidth];
 
-                for (int j = 0; j < MapWidth; j++)
-                {
-                    /*if (new Random().Next(0, 2) == 1) Map[i][j] = true;
-                    else Map[i][j] = false;*/
-                    Map[i][j] = false;
-                }
+                for (int j = 0; j < MapWidth; j++) Map[i][j] = false;
             }
+            timer1.Enabled = Time;
+            if (Mode) label1.Text = "Режим: Стандартный";
+            else label1.Text = "Режим: Фрактальный";
+            label3.Text = "Пробел - пауза\nМ - смера режима симуляции\nExc - очистка экрана";
 
-           // Map[MapHeight/2][MapWidth/2] = true;
-
-            timer1.Enabled = true;
+            label2.Visible = !Time;
         }
 
         int StringCheck(int id)
@@ -66,16 +64,17 @@ namespace GameOfLife
 
             for (int i = 0; i < MapHeight; i++)
                 for (int j = 0; j < MapWidth; j++)
-                {
                     if (Map[i][j]) G.FillRectangle(Brushes.White, 0 + SIZE * j, 0 + SIZE * i, SIZE, SIZE);
                     else G.FillRectangle(Brushes.Black, 0 + SIZE * j, 0 + SIZE * i, SIZE, SIZE);
-                }
 
             pictureBox1.Image = BitMap;
             GC.Collect();
         }
         void UpdateLogic()
         {
+            if (Mode) label1.Text = "Режим: Стандартный";
+            else label1.Text = "Режим: Фрактальный";
+
             bool[][] Buf = new bool[MapHeight][];
 
             for (int i = 0; i < MapHeight; i++)
@@ -97,32 +96,44 @@ namespace GameOfLife
                     if (Map[StringCheck(i + 1)][ColumCheck(j)]) bufcount++;
                     if (Map[StringCheck(i + 1)][ColumCheck(j + 1)]) bufcount++;
 
-                    if (Map[i][j] == false) // Стандарт
-                    {
-                        if (bufcount == 3) Buf[i][j] = true;
-                        else Buf[i][j] = false;
-                    }
+                    if (Mode)
+                        if (Map[i][j] == false) // Стандарт
+                        {
+                            if (bufcount == 3) Buf[i][j] = true;
+                            else Buf[i][j] = false;
+                        }
+                        else
+                        {
+                            if ((bufcount == 2) || (bufcount == 3)) Buf[i][j] = true;
+                            else Buf[i][j] = false;
+                        }
                     else
-                    {
-                        if ((bufcount == 2) || (bufcount == 3)) Buf[i][j] = true;
-                        else Buf[i][j] = false;
-                    }
-
-                    /*if (Map[i][j] == false) // Фрактальный узор
-                    {
-                        if (bufcount == 1) Buf[i][j] = true;
-                        else Buf[i][j] = false;
-                    }
-                    else
-                    {
-                        if ((bufcount >= 0) || (bufcount <= 8)) Buf[i][j] = true;
-                        else Buf[i][j] = false;
-                    }*/
-
+                        if (Map[i][j] == false) // Фрактальный узор
+                        {
+                            if (bufcount == 1) Buf[i][j] = true;
+                            else Buf[i][j] = false;
+                        }
+                        else
+                        {
+                            if ((bufcount >= 0) || (bufcount <= 8)) Buf[i][j] = true;
+                            else Buf[i][j] = false;
+                        }
                 }
             }
 
             Map = Buf;
+        }
+
+        void ClearMap()
+        {
+            Map = new bool[MapHeight][];
+
+            for (int i = 0; i < MapHeight; i++)
+            {
+                Map[i] = new bool[MapWidth];
+
+                for (int j = 0; j < MapWidth; j++) Map[i][j] = false;
+            }
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
@@ -145,18 +156,30 @@ namespace GameOfLife
                 if (R.Next(0, 2) == 1) Map[StringCheck(PositionY + 1)][ColumCheck(PositionX + 1)] = true;
             }
 
-            if (e.Button == MouseButtons.Right)
-            {
-                int PositionX = e.X / SIZE, PositionY = e.Y / SIZE;
-                
-                if (R.Next(0, 2) == 1) Map[StringCheck(PositionY)][ColumCheck(PositionX)] = true;
-            }
-
+            if (e.Button == MouseButtons.Right) Map[StringCheck(e.Y / SIZE)][ColumCheck(e.X / SIZE)] = true;
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Space) timer1.Enabled = !timer1.Enabled;
+            switch (e.KeyCode)
+            {
+                case Keys.Space: {
+                        Time = !Time;
+                        timer1.Enabled = Time;
+                        label2.Visible = !Time;
+                        break; }
+
+                case Keys.M: {
+                        Mode = !Mode;
+                        if (Mode) label1.Text = "Режим: Стандартный";
+                        else label1.Text = "Режим: Фрактальный";
+                        break; }
+
+                case Keys.Escape: {
+                        ClearMap();
+                        UpdatePrint();
+                        break; }
+            }
         }
 
         private void timer2_Tick(object sender, EventArgs e)
@@ -167,7 +190,6 @@ namespace GameOfLife
         private void timer1_Tick(object sender, EventArgs e)
         {
             UpdateLogic();
-           // UpdatePrint();
         }
     }
 }
