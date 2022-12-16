@@ -39,7 +39,7 @@ namespace GameOfLife
             timer1.Enabled = Time;
             if (Mode) label1.Text = "Режим: Стандартный";
             else label1.Text = "Режим: Фрактальный";
-            label3.Text = "Пробел - пауза\nМ - смера режима симуляции\nExc - очистка экрана";
+            label3.Text = "Пробел - пауза\nМ - смера режима симуляции\nExc - очистка экрана\nF - заполнение экрана";
 
             label2.Visible = !Time;
         }
@@ -161,6 +161,7 @@ namespace GameOfLife
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
+            Random R = new Random();
             switch (e.KeyCode)
             {
                 case Keys.Space: {
@@ -179,6 +180,18 @@ namespace GameOfLife
                         ClearMap();
                         UpdatePrint();
                         break; }
+                case Keys.F:
+                    {
+                        for (int i = 0; i < MapHeight; i++)
+                        {
+                            Map[i] = new bool[MapWidth];
+
+                            for (int j = 0; j < MapWidth; j++) 
+                                if (R.Next(0,101) <= 25) Map[i][j] = true;
+                            else Map[i][j] = false;
+                        }
+                        break;
+                    }
             }
         }
 
